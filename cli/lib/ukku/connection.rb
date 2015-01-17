@@ -4,8 +4,8 @@ class Connection
     @user = user
     @identity_file = identity_file
   end
-  
+
   def execute(command)
-    Subprocess.call(["ssh", "-t", "#{user}@#{root}", "/exec #{command}"])
+    Subprocess.call(["ssh", "-t", "#{@user}@#{@host}", "#{command}"])
   end
 end
