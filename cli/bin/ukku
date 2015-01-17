@@ -57,18 +57,16 @@ command :configure do |c|
       end
     end
 
-    box = Rye::Box.new(host, user: user, safe: false)
-    begin
-      server_already_configured = box.execute "test -e /usr/bin/gitreceive"
-    rescue Rye::Err
-    end
+    conn = Connection.new(host, user, nil)
 
-    if server_already_configured
+    server_ready = conn.execute("test -e /usr/bin/gitreceive") == 0
+
+    if server_ready
       puts "The server is already configured ... skipping"
     else
-      box.wget 'https://raw.githubusercontent.com/germanescobar/ukku/master/server/bootstrap.sh'
-      box.chmod 755, 'bootstrap.sh'
-      box.execute "./bootstrap.sh"
+      conn.execute "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/bootstrap.sh"
+      conn.execute "chmod 755 bootstrap.sh"
+      conn.execute "./bootstrap.sh"
     end
 
     begin
@@ -141,7 +139,7 @@ command :run do |c|
     user = server['user']
 
     puts "Running command '#{command}' on #{host} ..."
-    Subprocess.check_call(['ssh', '-t', "#{user}@#{host}", "./run.sh #{command}"])
+    Subprocess.call(['ssh', '-t', "#{user}@#{host}", "./run.sh #{command}"])
   end
 end
 

@@ -12,7 +12,7 @@ spec = Gem::Specification.new do |s|
 ")
   s.require_paths << 'lib'
   s.has_rdoc = true
-  s.extra_rdoc_files = ['README.rdoc','ukku.rdoc']
+  s.extra_rdoc_files = ['ukku.rdoc']
   s.rdoc_options << '--title' << 'ukku' << '--main' << 'README.rdoc' << '-ri'
   s.bindir = 'bin'
   s.executables << 'ukku'
