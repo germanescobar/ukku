@@ -1,6 +1,0 @@
-= ukku
-
-Describe your project here
-
-:include:ukku.rdoc
-
