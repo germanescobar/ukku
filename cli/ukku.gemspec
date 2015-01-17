@@ -3,9 +3,9 @@ require File.join([File.dirname(__FILE__),'lib','ukku','version.rb'])
 spec = Gem::Specification.new do |s| 
   s.name = 'ukku'
   s.version = Ukku::VERSION
-  s.author = 'Your Name Here'
-  s.email = 'your@email.address.com'
-  s.homepage = 'http://your.website.com'
+  s.author = 'Germán Escobar'
+  s.email = 'german.escobarc@gmail.com'
+  s.homepage = 'http://germanescobar.net/'
   s.platform = Gem::Platform::RUBY
   s.summary = 'A description of your project'
   s.files = `git ls-files`.split("
@@ -20,4 +20,6 @@ spec = Gem::Specification.new do |s|
   s.add_development_dependency('rdoc')
   s.add_development_dependency('aruba')
   s.add_runtime_dependency('gli','2.12.2')
+  s.add_runtime_dependency('rye', '0.9')
+  s.add_runtime_dependency('rugged', '0.21.3')
 end

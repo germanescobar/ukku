@@ -1,56 +1,147 @@
 #!/usr/bin/env ruby
 require 'gli'
-begin # XXX: Remove this begin/rescue before distributing your app
+require 'subprocess'
+require 'rye'
+require 'rugged'
+require 'yaml'
 require 'ukku'
-rescue LoadError
-  STDERR.puts "In development, you need to use `bundle exec bin/ukku` to run your app"
-  STDERR.puts "At install-time, RubyGems will make sure lib, etc. are in the load path"
-  STDERR.puts "Feel free to remove this message from bin/ukku now"
-  exit 64
-end
 
 include GLI::App
 
-program_desc 'Ukku is a '
+program_desc "Easily deploy your application to your own server using 'git push'"
 
 version Ukku::VERSION
 
 subcommand_option_handling :normal
 arguments :strict
 
-desc 'Describe some switch here'
-switch [:s,:switch]
+UKKU_FILE = '.ukku.yml'
 
-desc 'Describe some flag here'
-default_value 'the default'
-arg_name 'The name of the argument'
-flag [:f,:flagname]
+desc 'The name of the application '
+arg_name 'name'
+flag [:a,:app]
 
-desc 'Describe configure here'
-arg_name 'Describe arguments to configure here'
+desc 'Configure your server and application'
+arg_name 'host'
 command :configure do |c|
-  c.desc 'Describe a switch to configure'
-  c.switch :s
+  c.desc 'The user used to connect to your server.'
+  c.default_value 'root'
+  c.flag [:u, :user]
 
-  c.desc 'Describe a flag to configure'
-  c.default_value 'default'
-  c.flag :f
-  c.action do |global_options,options,args|
+  c.desc 'A name to identify your server locally.'
+  c.default_value 'production'
+  c.flag :name
 
-    # Your command logic here
-     
-    # If you have any errors, just raise them
-    # raise "that command made no sense"
+  c.desc 'Path of the identity file.'
+  c.flag [:i, 'identity-file']
 
-    puts "configure command ran"
+  c.action do |global_options, options, args|
+    host = args[0]
+    user = options[:user]
+    name = options[:name]
+
+    # validate host not empty
+    if host.nil? || host.empty?
+      raise "No host specified, see 'ukku configure --help' for more information"
+    end
+
+    ukku_data_configured = false
+    if File.exist?(UKKU_FILE)
+      data = YAML.load_file(UKKU_FILE)
+      if data.has_key?(name)
+        if data[name]['host'] != host || data[name]['user'] != user
+          raise "Name '#{name}' already exists, choose a different one with the --name option"
+        else
+          ukku_data_configured = true
+        end
+      end
+    end
+
+    box = Rye::Box.new(host, user: user, safe: false)
+    begin
+      server_already_configured = box.execute "test -e /usr/bin/gitreceive"
+    rescue Rye::Err
+    end
+
+    if server_already_configured
+      puts "The server is already configured ... skipping"
+    else
+      box.wget 'https://raw.githubusercontent.com/germanescobar/ukku/master/server/bootstrap.sh'
+      box.chmod 755, 'bootstrap.sh'
+      box.execute "./bootstrap.sh"
+    end
+
+    begin
+      repo = Rugged::Repository.new('.')
+    rescue Rugged::RepositoryError
+      repo = Rugged::Repository.init_at('.')
+    end
+
+    remote_url = "git@#{host}:#{name}"
+    if repo.remotes[name]
+      if repo.remotes[name].url != remote_url
+        puts
+        raise "A remote with name '#{name}' already exists"
+      end
+      puts "Git remote already configured ... skipping"
+    else
+      print "Configuring remote repository ... "
+      repo.remotes.create(name, remote_url)
+      puts "done"
+    end
+
+    if !ukku_data_configured
+      data = { name => { "host" => host, "user" => user } }
+      File.open(UKKU_FILE, 'a') { |f| f.write data.to_yaml }
+    end
+
+    if File.read('.gitignore').scan(/.ukku.yml/).length == 0
+      print "Adding '#{UKKU_FILE}' to .gitignore ... "
+      File.open('.gitignore', 'a') { |f| f.write UKKU_FILE }
+      puts "done"
+    else
+      print "'#{UKKU_FILE}' already in .gitignore ... skipping"
+    end
+
+    puts
+    puts "Your server is configured! Deploy your application using 'git push #{name} master'"
   end
 end
 
-desc 'Describe run here'
+desc 'Run a command remotely'
 arg_name 'Describe arguments to run here'
 command :run do |c|
-  c.action do |global_options,options,args|
-    puts "run command ran"
+  c.action do |global_options, options, args|
+    command = args.join(' ')
+
+    if command.nil? || command.empty?
+      raise "No command specified, see 'ukku run --help' for more information"
+    end
+
+    if !File.exist?(UKKU_FILE)
+      raise "No application configured. Run 'ukku configure <host>' first."
+    end
+
+    data = YAML.load_file(UKKU_FILE)
+    name, server = data.first
+    if name.nil?
+      raise "No application configured. Run 'ukku configure <host>' first."
+    end
+
+    if data.length > 1
+      if global_options[:app].nil? || global_options[:app].empty?
+        raise "No app specified, use the --app APP option"
+      else
+        name = global_options[:app]
+        sever = data[name]
+      end
+    end
+
+    host = server['host']
+    user = server['user']
+
+    puts "Running command '#{command}' on #{host} ..."
+    Subprocess.check_call(['ssh', '-t', "#{user}@#{host}", "./run.sh #{command}"])
   end
 end
 
