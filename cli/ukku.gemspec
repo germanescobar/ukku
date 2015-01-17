@@ -7,7 +7,7 @@ spec = Gem::Specification.new do |s|
   s.email = 'german.escobarc@gmail.com'
   s.homepage = 'http://germanescobar.net/'
   s.platform = Gem::Platform::RUBY
-  s.summary = 'A description of your project'
+  s.summary = 'Easily deploy your application to your own server using "git push"'
   s.files = `git ls-files`.split("
 ")
   s.require_paths << 'lib'

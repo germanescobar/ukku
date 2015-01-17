@@ -17,7 +17,7 @@ arguments :strict
 
 UKKU_FILE = '.ukku.yml'
 
-desc 'The name of the application '
+desc 'The name of the application.'
 arg_name 'name'
 flag [:a,:app]
 
