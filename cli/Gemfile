@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 gemspec
 
+gem 'docopt'
 gem 'rye', '0.9'
 gem 'subprocess'
 gem 'rugged'

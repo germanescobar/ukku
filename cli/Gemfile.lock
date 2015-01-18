@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ukku (0.0.1)
+    ukku (0.1.0)
       gli (= 2.12.2)
       rugged (= 0.21.3)
       rye (= 0.9)
@@ -25,6 +25,7 @@ GEM
       multi_json (>= 1.7.5, < 2.0)
       multi_test (>= 0.1.1)
     diff-lcs (1.2.5)
+    docopt (0.5.0)
     drydock (0.6.9)
     ffi (1.9.6)
     gherkin (2.12.2)
@@ -62,6 +63,7 @@ PLATFORMS
 
 DEPENDENCIES
   aruba
+  docopt
   rake
   rdoc
   rugged

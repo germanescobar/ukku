@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'gli'
+require 'docopt'
 require 'subprocess'
 require 'rye'
 require 'rugged'
@@ -8,168 +9,200 @@ require 'ukku'
 
 include GLI::App
 
-program_desc "Easily deploy your application to your own server using 'git push'"
+doc = <<DOCOPT
+Ukku.
 
-version Ukku::VERSION
+Usage:
+  ukku configure [-u USER] HOST [NAME]
+  ukku run COMMAND...
 
-subcommand_option_handling :normal
-arguments :strict
+Arguments:
+  HOST                  Domain or IP of your server.
+  NAME                  A name for the application.
+
+Options:
+  -u USER --user=USER   User used to connect to your server.
+
+DOCOPT
 
 UKKU_FILE = '.ukku.yml'
 
-desc 'The name of the application.'
-arg_name 'name'
-flag [:a,:app]
+begin
+  # parse args
+  args = Docopt::docopt(doc)
 
-desc 'Configure your server and application'
-arg_name 'host'
-command :configure do |c|
-  c.desc 'The user used to connect to your server.'
-  c.default_value 'root'
-  c.flag [:u, :user]
-
-  c.desc 'A name to identify your server locally.'
-  c.default_value 'production'
-  c.flag :name
-
-  c.desc 'Path of the identity file.'
-  c.flag [:i, 'identity-file']
-
-  c.action do |global_options, options, args|
-    host = args[0]
-    user = options[:user]
-    name = options[:name]
-
-    # validate host not empty
-    if host.nil? || host.empty?
-      raise "No host specified, see 'ukku configure --help' for more information"
-    end
-
-    ukku_data_configured = false
-    if File.exist?(UKKU_FILE)
-      data = YAML.load_file(UKKU_FILE)
-      if data.has_key?(name)
-        if data[name]['host'] != host || data[name]['user'] != user
-          raise "Name '#{name}' already exists, choose a different one with the --name option"
-        else
-          ukku_data_configured = true
-        end
-      end
-    end
-
-    conn = Connection.new(host, user, nil)
-
-    server_ready = conn.execute("test -e /usr/bin/gitreceive") == 0
-
-    if server_ready
-      puts "The server is already configured ... skipping"
-    else
-      conn.execute "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/bootstrap.sh"
-      conn.execute "chmod 755 bootstrap.sh"
-      conn.execute "./bootstrap.sh"
-    end
-
-    begin
-      repo = Rugged::Repository.new('.')
-    rescue Rugged::RepositoryError
-      repo = Rugged::Repository.init_at('.')
-    end
-
-    remote_url = "git@#{host}:#{name}"
-    if repo.remotes[name]
-      if repo.remotes[name].url != remote_url
-        puts
-        raise "A remote with name '#{name}' already exists"
-      end
-      puts "Git remote already configured ... skipping"
-    else
-      print "Configuring remote repository ... "
-      repo.remotes.create(name, remote_url)
-      puts "done"
-    end
-
-    if !ukku_data_configured
-      data = { name => { "host" => host, "user" => user } }
-      File.open(UKKU_FILE, 'a') { |f| f.write data.to_yaml }
-    end
-
-    if File.read('.gitignore').scan(/.ukku.yml/).length == 0
-      print "Adding '#{UKKU_FILE}' to .gitignore ... "
-      File.open('.gitignore', 'a') { |f| f.write UKKU_FILE }
-      puts "done"
-    else
-      print "'#{UKKU_FILE}' already in .gitignore ... skipping"
-    end
-
-    puts
-    puts "Your server is configured! Deploy your application using 'git push #{name} master'"
-  end
+  # execute commands
+  ConfigureCommand.execute(args) if args['configure']  
+  RunCommand.execute(args) if args['run']
+rescue Exception => e
+  puts "   !   #{e.message}"
+  exit 1
 end
 
-desc 'Run a command remotely'
-arg_name 'Describe arguments to run here'
-command :run do |c|
-  c.action do |global_options, options, args|
-    command = args.join(' ')
+# program_desc "Easily deploy your application to your own server using 'git push'"
 
-    if command.nil? || command.empty?
-      raise "No command specified, see 'ukku run --help' for more information"
-    end
+# version Ukku::VERSION
 
-    if !File.exist?(UKKU_FILE)
-      raise "No application configured. Run 'ukku configure <host>' first."
-    end
+# subcommand_option_handling :normal
+# arguments :strict
 
-    data = YAML.load_file(UKKU_FILE)
-    name, server = data.first
-    if name.nil?
-      raise "No application configured. Run 'ukku configure <host>' first."
-    end
+# UKKU_FILE = '.ukku.yml'
 
-    if data.length > 1
-      if global_options[:app].nil? || global_options[:app].empty?
-        raise "No app specified, use the --app APP option"
-      else
-        name = global_options[:app]
-        sever = data[name]
-      end
-    end
+# desc 'The name of the application.'
+# arg_name 'name'
+# flag [:a,:app]
 
-    host = server['host']
-    user = server['user']
+# desc 'Configure your server and application'
+# arg_name 'host'
+# command :configure do |c|
+#   c.desc 'The user used to connect to your server.'
+#   c.default_value 'root'
+#   c.flag [:u, :user]
 
-    puts "Running command '#{command}' on #{host} ..."
-    Subprocess.call(['ssh', '-t', "#{user}@#{host}", "./run.sh #{command}"])
-  end
-end
+#   c.desc 'A name to identify your server locally.'
+#   c.default_value 'production'
+#   c.flag :name
 
-desc 'Describe var here'
-arg_name 'Describe arguments to var here'
-command :var do |c|
-  c.action do |global_options,options,args|
-    puts "var command ran"
-  end
-end
+#   c.desc 'Path of the identity file.'
+#   c.flag [:i, 'identity-file']
 
-pre do |global,command,options,args|
-  # Pre logic here
-  # Return true to proceed; false to abort and not call the
-  # chosen command
-  # Use skips_pre before a command to skip this block
-  # on that command only
-  true
-end
+#   c.action do |global_options, options, args|
+#     host = args[0]
+#     user = options[:user]
+#     name = options[:name]
 
-post do |global,command,options,args|
-  # Post logic here
-  # Use skips_post before a command to skip this
-  # block on that command only
-end
+#     # validate host not empty
+#     if host.nil? || host.empty?
+#       raise "No host specified, see 'ukku configure --help' for more information"
+#     end
 
-on_error do |exception|
-  # Error logic here
-  # return false to skip default error handling
-  true
-end
+#     ukku_data_configured = false
+#     if File.exist?(UKKU_FILE)
+#       data = YAML.load_file(UKKU_FILE)
+#       if data.has_key?(name)
+#         if data[name]['host'] != host || data[name]['user'] != user
+#           raise "Name '#{name}' already exists, choose a different one with the --name option"
+#         else
+#           ukku_data_configured = true
+#         end
+#       end
+#     end
 
-exit run(ARGV)
+#     conn = Connection.new(host, user, nil)
+
+#     server_ready = conn.execute("test -e /usr/bin/gitreceive") == 0
+
+#     if server_ready
+#       puts "The server is already configured ... skipping"
+#     else
+#       wget1_command = "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/bootstrap.sh"
+#       wget2_command = "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/run.sh"
+#       chmod_command = "chmod 755 bootstrap.sh"
+#       run_command = "./bootstrap.sh"
+#       conn.execute "#{wget1_command} && #{wget2_command} && #{chmond_command} && #{run_command}"
+#     end
+
+#     begin
+#       repo = Rugged::Repository.new('.')
+#     rescue Rugged::RepositoryError
+#       repo = Rugged::Repository.init_at('.')
+#     end
+
+#     remote_url = "git@#{host}:#{name}"
+#     if repo.remotes[name]
+#       if repo.remotes[name].url != remote_url
+#         puts
+#         raise "A remote with name '#{name}' already exists"
+#       end
+#       puts "Git remote already configured ... skipping"
+#     else
+#       print "Configuring remote repository ... "
+#       repo.remotes.create(name, remote_url)
+#       puts "done"
+#     end
+
+#     if !ukku_data_configured
+#       data = { name => { "host" => host, "user" => user } }
+#       File.open(UKKU_FILE, 'a') { |f| f.write data.to_yaml }
+#     end
+
+#     if File.read('.gitignore').scan(/.ukku.yml/).length == 0
+#       print "Adding '#{UKKU_FILE}' to .gitignore ... "
+#       File.open('.gitignore', 'a') { |f| f.write UKKU_FILE }
+#       puts "done"
+#     else
+#       print "'#{UKKU_FILE}' already in .gitignore ... skipping"
+#     end
+
+#     puts
+#     puts "Your server is configured! Deploy your application using 'git push #{name} master'"
+#   end
+# end
+
+# desc 'Run a command remotely'
+# arg_name 'Describe arguments to run here'
+# command :run do |c|
+#   c.action do |global_options, options, args|
+#     command = args.join(' ')
+
+#     if command.nil? || command.empty?
+#       raise "No command specified, see 'ukku run --help' for more information"
+#     end
+
+#     if !File.exist?(UKKU_FILE)
+#       raise "No application configured. Run 'ukku configure <host>' first."
+#     end
+
+#     data = YAML.load_file(UKKU_FILE)
+#     name, server = data.first
+#     if name.nil?
+#       raise "No application configured. Run 'ukku configure <host>' first."
+#     end
+
+#     if data.length > 1
+#       if global_options[:app].nil? || global_options[:app].empty?
+#         raise "No app specified, use the --app APP option"
+#       else
+#         name = global_options[:app]
+#         sever = data[name]
+#       end
+#     end
+
+#     host = server['host']
+#     user = server['user']
+
+#     puts "Running command '#{command}' on #{host} ..."
+#     Subprocess.call(['ssh', '-t', "#{user}@#{host}", "./run.sh #{command}"])
+#   end
+# end
+
+# desc 'Describe var here'
+# arg_name 'Describe arguments to var here'
+# command :var do |c|
+#   c.action do |global_options,options,args|
+#     puts "var command ran"
+#   end
+# end
+
+# pre do |global,command,options,args|
+#   # Pre logic here
+#   # Return true to proceed; false to abort and not call the
+#   # chosen command
+#   # Use skips_pre before a command to skip this block
+#   # on that command only
+#   true
+# end
+
+# post do |global,command,options,args|
+#   # Post logic here
+#   # Use skips_post before a command to skip this
+#   # block on that command only
+# end
+
+# on_error do |exception|
+#   # Error logic here
+#   # return false to skip default error handling
+#   true
+# end
+
+# exit run(ARGV)
