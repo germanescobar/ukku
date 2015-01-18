@@ -6,6 +6,11 @@ class Connection
   end
 
   def execute(command)
-    Subprocess.call(["ssh", "-t", "#{@user}@#{@host}", "#{command}"])
+    args = ["ssh", "-t"]
+    if @identity_file
+      args += ["-i", @identity_file ]
+    end
+    args += ["#{@user}@#{@host}", "#{command}"]
+    Subprocess.call(args)
   end
 end

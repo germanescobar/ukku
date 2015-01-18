@@ -10,15 +10,17 @@ doc = <<DOCOPT
 Ukku.
 
 Usage:
-  ukku configure [-u USER] HOST [NAME]
-  ukku run COMMAND...
+  ukku configure [-u USER] [-i IDENTITY_FILE] HOST [NAME]
+  ukku [--app=NAME] run COMMAND...
 
 Arguments:
   HOST                  Domain or IP of your server.
-  NAME                  A name for the application.
+  NAME                  A name for the application. Defaults to 'production'.
 
 Options:
-  -u USER --user=USER   User used to connect to your server.
+  -u USER --user=USER   User used to connect to your server. Defaults to 'root'.
+  -i IDENTITY_FILE      The SSH key used to connect to your server. Defaults to '~/.ssh/id_rsa'.
+  --app=NAME            The name of the application.
 
 DOCOPT
 

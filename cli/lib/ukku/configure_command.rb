@@ -4,8 +4,10 @@ class ConfigureCommand
     host = args['HOST']
     name = args['NAME'] || "production"
     user = args['--user'] || "root"
+    identity_file = args['-i']
 
     entry = { "host" => host, "user" => user } # the entry to add to UKKU_FILE
+    entry["identity_file"] = identity_file if identity_file
 
     # check if the entry exists in UKKU_FILE (with different info)
     entry_in_file = load_entry_from_file(name)
@@ -13,7 +15,7 @@ class ConfigureCommand
       raise "Name '#{name}' already exists, choose a different one"
     end
 
-    conn = Connection.new(host, user, nil)
+    conn = Connection.new(host, user, identity_file)
     server_ready = conn.execute("test -e /usr/bin/gitreceive") == 0
     
     if server_ready
@@ -23,9 +25,9 @@ class ConfigureCommand
     end
 
     repo = fetch_repo
-    configure_remote(repo, "git@#{host}:#{name}")
+    configure_remote(repo, name, "git@#{host}:#{name}")
     
-    append_entry_to_ukku_file(entry) if !entry_in_file
+    append_entry_to_ukku_file(name, entry) if !entry_in_file
 
     append_ukku_file_to_gitignore
 
@@ -48,9 +50,9 @@ class ConfigureCommand
     def configure_server(conn)
       wget1_command = "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/bootstrap.sh"
       wget2_command = "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/run.sh"
-      chmod_command = "chmod 755 bootstrap.sh"
+      chmod_command = "chmod 755 bootstrap.sh run.sh"
       run_command = "./bootstrap.sh"
-      conn.execute "#{wget1_command} && #{wget2_command} && #{chmond_command} && #{run_command}"
+      conn.execute "#{wget1_command} && #{wget2_command} && #{chmod_command} && #{run_command}"
     end
 
     def fetch_repo
@@ -61,7 +63,7 @@ class ConfigureCommand
       end
     end
 
-    def configure_remote(repo, remote_url)
+    def configure_remote(repo, name, remote_url)
       if repo.remotes[name]
         if repo.remotes[name].url != remote_url
           raise "A remote with name '#{name}' already exists"
@@ -74,7 +76,7 @@ class ConfigureCommand
       end
     end
 
-    def append_entry_to_ukku_file(params)
+    def append_entry_to_ukku_file(name, params)
       data = { name => params }
       File.open(UKKU_FILE, 'a') { |f| f.write data.to_yaml }
     end

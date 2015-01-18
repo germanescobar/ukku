@@ -1,5 +1,7 @@
 class RunCommand
   def execute(args)
+    command = args['COMMAND'].join(' ')
+
     if !File.exist?(UKKU_FILE)
       raise "No application configured. Run 'ukku configure HOST' first."
     end
@@ -11,18 +13,20 @@ class RunCommand
     end
 
     if data.length > 1
-      if global_options[:app].nil? || global_options[:app].empty?
-        raise "No app specified, use the --app APP option"
+      if args['--app'].empty?
+        raise "No app specified, use the --app NAME option"
       else
-        name = global_options[:app]
+        name = args[--app]
         sever = data[name]
       end
     end
 
     host = server['host']
     user = server['user']
+    identity_file = server['identity_file']
 
     puts "Running command '#{command}' on #{host} ..."
-    Subprocess.call(['ssh', '-t', "#{user}@#{host}", "./run.sh #{command}"])    
+    conn = Connection.new(host, user, identity_file)
+    conn.execute("./run.sh #{command}")
   end
 end
