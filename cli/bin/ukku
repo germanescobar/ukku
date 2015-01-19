@@ -35,6 +35,5 @@ begin
   RunCommand.new.execute(args) if args['run']
 rescue Exception => e
   puts "   !   #{e.message}"
-  puts e.backtrace.inspect
   exit 1
 end
