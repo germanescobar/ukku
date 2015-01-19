@@ -11,6 +11,6 @@ class Connection
       args += ["-i", @identity_file ]
     end
     args += ["#{@user}@#{@host}", "#{command}"]
-    Subprocess.call(args)
+    Subprocess.check_call(args)
   end
 end
