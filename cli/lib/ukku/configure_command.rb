@@ -16,7 +16,7 @@ class ConfigureCommand
     end
 
     conn = Connection.new(host, user, identity_file)
-    server_ready = conn.execute("test -e /usr/bin/gitreceive") == 0
+    server_ready = is_server_ready?(conn)
     
     if server_ready
       puts "The server is already configured ... skipping"
@@ -45,6 +45,15 @@ class ConfigureCommand
 
     def entries_match?(h1, h2)
       h1.size == h2.size && (h1.keys - h2.keys).empty?
+    end
+
+    def is_server_ready?(conn)
+      begin
+        conn.execute("test -e /usr/bin/gitreceive")
+        true
+      rescue Subprocess::NonZeroExit
+        false
+      end
     end
 
     def configure_server(conn)
