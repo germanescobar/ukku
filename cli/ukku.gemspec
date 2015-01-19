@@ -16,8 +16,8 @@ spec = Gem::Specification.new do |s|
   s.add_development_dependency('rake')
   s.add_development_dependency('rdoc')
   s.add_development_dependency('aruba')
-  s.add_runtime_dependency('gli','2.12.2')
   s.add_runtime_dependency('docopt', '0.5.0')
   s.add_runtime_dependency('rye', '0.9')
   s.add_runtime_dependency('rugged', '0.21.3')
+  s.add_runtime_dependency('subprocess', '1.2.0')
 end
