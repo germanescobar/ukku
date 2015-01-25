@@ -1,8 +1,5 @@
-class SetVarCommand
+class VarsCommand
   def execute(args)
-    var_name = args['VAR_NAME']
-    var_value = args['VAR_VALUE']
-
     data = YAML.load_file(UKKU_FILE)
     name, server = data.first
     if name.nil?
@@ -23,6 +20,6 @@ class SetVarCommand
     identity_file = server['identity_file']
 
     conn = Connection.new(host, user, identity_file)
-    conn.execute("mkdir vars && echo '#{var_value}' > vars/#{var_name}")
+    conn.execute("mkdir vars && FILES=vars/*;for f in $FILES;do;echo \"${f##*/}=$(<$f)\";done")
   end
 end

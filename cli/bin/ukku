@@ -36,6 +36,7 @@ begin
   # execute commands
   ConfigureCommand.new.execute(args) if args['configure']
   RunCommand.new.execute(args) if args['run']
+  VarsCommand.new.execute(args) if args['vars']
   SetVarCommand.new.execute(args) if args['vars:set']
 rescue Exception => e
   puts "   !   #{e.message}"
