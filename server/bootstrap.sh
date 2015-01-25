@@ -40,14 +40,14 @@ cat > "$launch_path" <<EOF
 
 vars=""
 FILES=/etc/vars/*
-for f in $FILES
+for f in \$FILES
 do
-  vars="$vars -e ${f##*/}=$(<$f)"
+  vars="\$vars -e \${f##*/}=\$(<\$f)"
 done
 
 docker kill app
 docker rm app
-docker run -d --name app -p 80:3000 $vars -e PORT=3000 --link postgres:postgres app /bin/bash -c "/start web"
+docker run -d --name app -p 80:3000 \$vars -e PORT=3000 --link postgres:postgres app /bin/bash -c "/start web"
 EOF
 chmod +x "$launch_path"
 chown git "$launch_path"
@@ -59,13 +59,13 @@ cat > "$run_path" <<EOF
 
 vars=""
 FILES=/etc/vars/*
-for f in $FILES
+for f in \$FILES
 do
-  vars="$vars -e ${f##*/}=$(<$f)"
+  vars="\$vars -e \${f##*/}=\$(<\$f)"
 done
 
-command="/exec $@"
-docker run -t -i $vars --link postgres:postgres app /bin/bash -c "$command"
+command="/exec \$@"
+docker run -t -i \$vars --link postgres:postgres app /bin/bash -c "\$command"
 EOF
 chmod +x "$run_path"
 
