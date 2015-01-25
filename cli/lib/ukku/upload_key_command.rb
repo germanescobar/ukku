@@ -1,8 +1,5 @@
-class SetVarCommand
+class UploadKeyCommand
   def execute(args)
-    var_name = args['VAR_NAME']
-    var_value = args['VAR_VALUE']
-
     data = YAML.load_file(UKKU_FILE)
     name, server = data.first
     if name.nil?
@@ -22,7 +19,12 @@ class SetVarCommand
     user = server['user']
     identity_file = server['identity_file']
 
+    key_file = args['PUBLIC_KEY_FILE']
+    key_name = args['KEY_NAME']
+
     conn = Connection.new(host, user, identity_file)
-    conn.execute("mkdir -p /etc/vars && echo '#{var_value}' > /etc/vars/#{var_name} && launchapp")
+    conn.execute("gitreceive upload-key #{key_name}") do |p|
+      p.communicate IO.read(File.expand_path(key_file))
+    end
   end
 end

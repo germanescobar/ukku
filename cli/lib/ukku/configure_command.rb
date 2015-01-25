@@ -58,10 +58,9 @@ class ConfigureCommand
 
     def configure_server(conn)
       wget1_command = "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/bootstrap.sh"
-      wget2_command = "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/run.sh"
-      chmod_command = "chmod 755 bootstrap.sh run.sh"
+      chmod_command = "chmod 755 bootstrap.sh"
       run_command = "./bootstrap.sh"
-      conn.execute "#{wget1_command} && #{wget2_command} && #{chmod_command} && #{run_command}"
+      conn.execute "#{wget1_command} && #{chmod_command} && #{run_command}"
     end
 
     def fetch_repo

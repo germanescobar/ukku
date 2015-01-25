@@ -27,6 +27,6 @@ class RunCommand
 
     puts "Running command '#{command}' on #{host} ..."
     conn = Connection.new(host, user, identity_file)
-    conn.execute("./run.sh #{command}")
+    conn.execute("runcommand #{command}")
   end
 end
