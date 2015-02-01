@@ -6,12 +6,13 @@ class Connection
   end
 
   def execute(command, &blk)
-    args = ["ssh", "-t"]
+    args = ["ssh"]
+    args << "-t" if blk.nil?
     if @identity_file
       args += ["-i", @identity_file ]
     end
     args += ["#{@user}@#{@host}", "#{command}"]
-    if &blk
+    if blk
       Subprocess.check_call(args, stdin: Subprocess::PIPE, &blk)
     else
       Subprocess.check_call(args)

@@ -20,11 +20,23 @@ class UploadKeyCommand
     identity_file = server['identity_file']
 
     key_file = args['PUBLIC_KEY_FILE']
-    key_name = args['KEY_NAME']
 
     conn = Connection.new(host, user, identity_file)
-    conn.execute("gitreceive upload-key #{key_name}") do |p|
+
+    puts "Uploading key '#{key_file}' ... "
+    conn.execute("gitreceive upload-key ukku") do |p|
       p.communicate IO.read(File.expand_path(key_file))
     end
+    puts "Done!"
+
+    puts
+    puts "*********************************************************************"
+    puts "ATTENTION: Add the following to '~/.ssh/config' before deploying"
+    puts "(create the file if necessary; erase any other entry with same host):"
+    puts
+    puts "Host #{host}"
+    puts "    User git"
+    puts "    IdentityFile #{key_file}"
+    puts "*********************************************************************"
   end
 end
