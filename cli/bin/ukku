@@ -39,6 +39,8 @@ begin
   UploadKeyCommand.new.execute(args) if args['keys:upload']
   VarsCommand.new.execute(args) if args['vars']
   SetVarCommand.new.execute(args) if args['vars:set']
+rescue Docopt::Exit => e
+  puts doc.strip
 rescue Exception => e
   puts "   !   #{e.message}"
   exit 1
