@@ -20,6 +20,12 @@ The recommended way of installing `ukku` is through Rubygems:
 $ gem install ukku
 ```
 
+You need to have CMake and `pkg-config` installed on your system to be able to run the previous command. On OS X, after installing Homebrew, you can get CMake with:
+
+```
+$ brew install cmake
+```
+
 ## Requirements
 
 Launch a server **with Ubuntu** using your favorite provider (AWS, Digital Ocean, Linode, etc.). **Your server must be accessible through a public IP**.
