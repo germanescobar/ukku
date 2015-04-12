@@ -10,11 +10,15 @@ doc = <<DOCOPT
 Ukku.
 
 Usage:
-  ukku configure [-u USER] [-i IDENTITY_FILE] HOST [NAME]
+  ukku configure [-u USER] [-i IDENTITY_FILE] [--no-pg] HOST [NAME]
   ukku [--app=NAME] run COMMAND...
   ukku [--app=NAME] keys:upload PUBLIC_KEY_FILE
   ukku [--app=NAME] vars
   ukku [--app=NAME] vars:set VAR_NAME VAR_VALUE
+  ukku [--app=NAME] ps
+  ukku [--app=NAME] ps:add TYPE
+  ukku [--app=NAME] ps:remove TYPE
+  ukku [--app=NAME] ps:restart [TYPE]
 
 Arguments:
   HOST                  Domain or IP of your server.
@@ -39,6 +43,9 @@ begin
   UploadKeyCommand.new.execute(args) if args['keys:upload']
   VarsCommand.new.execute(args) if args['vars']
   SetVarCommand.new.execute(args) if args['vars:set']
+  PsCommand.new.execute(args) if args['ps']
+  PsAddCommand.new.execute(args) if args['ps:add']
+  PsRemoveCommand.new.execute(args) if args['ps:remove']
 rescue Docopt::Exit => e
   puts doc.strip
 rescue Exception => e

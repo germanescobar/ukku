@@ -1,9 +1,9 @@
 class ConfigureCommand
-
   def execute(args)
     host = args['HOST']
     name = args['NAME'] || "production"
     user = args['--user'] || "root"
+    no_pg = args['--no-pg']
     identity_file = args['-i']
 
     entry = { "host" => host, "user" => user } # the entry to add to UKKU_FILE
@@ -58,10 +58,11 @@ class ConfigureCommand
       end
     end
 
-    def configure_server(conn)
+    def configure_server(conn, no_postgres)
       wget1_command = "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/bootstrap.sh"
       chmod_command = "chmod 755 bootstrap.sh"
       run_command = "./bootstrap.sh"
+      run_command += " -p" unless no_pg
       conn.execute "#{wget1_command} && #{chmod_command} && #{run_command}"
     end
 

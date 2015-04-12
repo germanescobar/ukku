@@ -16,6 +16,8 @@ install_authorized_key() {
 apt-get -qqy update
 apt-get -y install git make docker.io
 
+chmod 666 /var/run/docker.sock
+
 wget https://raw.github.com/progrium/gitreceive/master/gitreceive
 mv gitreceive /usr/bin/
 cd /usr/bin
@@ -38,16 +40,31 @@ launch_path="/usr/bin/launchapp"
 cat > "$launch_path" <<EOF
 #!/usr/bin/env bash
 
+if ! docker images app | grep "app" > /dev/null ; then exit 1 ; fi
+
 vars=""
-FILES=/etc/vars/*
+FILES=/etc/ukku/vars/*
 for f in \$FILES
 do
   vars="\$vars -e \${f##*/}=\$(<\$f)"
 done
 
-docker kill app
-docker rm app
-docker run -d --name app -p 80:3000 \$vars -e PORT=3000 --link postgres:postgres app /bin/bash -c "/start web"
+PS_TYPES=/etc/ukku/ps-types/*
+for f in \$PS_TYPES
+do
+  type=\${f##*/}
+
+  link=""
+  if docker inspect postgres > /dev/null ; then link="--link postgres:postgres" ; fi
+
+  docker kill app-\$type > /dev/null 2>&1
+  docker rm app-\$type > /dev/null 2>&1
+  if [[ \$type = "web" ]] ; then
+    docker run -d --name app-web -p 80:3000 \$vars -e PORT=3000 \$link -v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker app /bin/bash -c "herokuish procfile start web"
+  else
+    docker run -d --name app-\$type \$vars \$link -v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker app /bin/bash -c "herokuish procfile start \$type"
+  fi
+done
 EOF
 chmod +x "$launch_path"
 chown git "$launch_path"
@@ -57,15 +74,20 @@ run_path="/usr/bin/runcommand"
 cat > "$run_path" <<EOF
 #!/usr/bin/env bash
 
+if ! docker images app | grep "app" > /dev/null ; then exit 1 ; fi
+
 vars=""
-FILES=/etc/vars/*
+FILES=/etc/ukku/vars/*
 for f in \$FILES
 do
   vars="\$vars -e \${f##*/}=\$(<\$f)"
 done
 
+link=""
+if docker inspect postgres > /dev/null ; then link="--link postgres:postgres" ; fi
+
 command="/exec \$@"
-docker run -t -i \$vars --link postgres:postgres app /bin/bash -c "\$command"
+docker run -t -i \$vars \$link app /bin/bash -c "\$command"
 EOF
 chmod +x "$run_path"
 
@@ -83,7 +105,11 @@ cp buildstep /usr/bin/
 # give the group docker to the git user
 sudo usermod -a -G docker git
 
-docker run --name postgres -e POSTGRES_USER=app -e POSTGRES_PASSWORD=5tgbnhy6 -v /home/git/volumes/data:/var/lib/postgresql/data -d postgres
+mkdir -p /etc/ukku/ps-types
+touch /etc/ukku/ps-types/web
 
-mkdir -p /etc/vars
-echo postgres://app:5tgbnhy6@postgres/app > /etc/vars/DATABASE_URL
+mkdir -p /etc/ukku/vars
+if getopts ":p" opts ; then
+  docker run --name postgres -e POSTGRES_USER=app -e POSTGRES_PASSWORD=5tgbnhy6 -v /home/git/volumes/data:/var/lib/postgresql/data -d postgres
+  echo postgres://app:5tgbnhy6@postgres/app > /etc/ukku/vars/DATABASE_URL
+fi
