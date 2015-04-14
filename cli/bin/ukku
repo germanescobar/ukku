@@ -50,5 +50,6 @@ rescue Docopt::Exit => e
   puts doc.strip
 rescue Exception => e
   puts "   !   #{e.message}"
+  puts e.backtrace
   exit 1
 end
