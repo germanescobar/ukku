@@ -21,7 +21,7 @@ class ConfigureCommand
     if server_ready
       puts "The server is already configured ... skipping"
     else
-      configure_server(conn)
+      configure_server(conn, no_pg)
     end
 
     repo = fetch_repo
@@ -58,7 +58,7 @@ class ConfigureCommand
       end
     end
 
-    def configure_server(conn, no_postgres)
+    def configure_server(conn, no_pg)
       wget1_command = "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/bootstrap.sh"
       chmod_command = "chmod 755 bootstrap.sh"
       run_command = "./bootstrap.sh"
