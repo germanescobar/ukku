@@ -14,9 +14,10 @@ install_authorized_key() {
 }
 
 apt-get -qqy update
-apt-get -y install git make docker.io
+apt-get -y install git make
 
-chmod 666 /var/run/docker.sock
+wget -qO- https://get.docker.com/ | sh
+usermod -aG docker git
 
 wget https://raw.github.com/progrium/gitreceive/master/gitreceive
 mv gitreceive /usr/bin/
@@ -60,9 +61,9 @@ do
   docker kill app-\$type > /dev/null 2>&1
   docker rm app-\$type > /dev/null 2>&1
   if [[ \$type = "web" ]] ; then
-    docker run -d --name app-web -p 80:3000 \$vars -e PORT=3000 \$link -v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker app /bin/bash -c "herokuish procfile start web"
+    docker run -d --name app-web -p 80:3000 \$vars -e PORT=3000 \$link -v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker -v $HOME/.ukku/shared:/app/.ukku/shared app /bin/bash -c "herokuish procfile start web"
   else
-    docker run -d --name app-\$type \$vars \$link -v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker app /bin/bash -c "herokuish procfile start \$type"
+    docker run -d --name app-\$type \$vars \$link -v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker -v $HOME/.ukku/shared:/app/.ukku/shared app /bin/bash -c "herokuish procfile start \$type"
   fi
 done
 EOF
@@ -87,7 +88,7 @@ link=""
 if docker inspect postgres > /dev/null ; then link="--link postgres:postgres" ; fi
 
 command="/exec \$@"
-docker run -t -i \$vars \$link app /bin/bash -c "\$command"
+docker run -t -i \$vars \$link -v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker -v $HOME/.ukku/shared:/app/.ukku/shared app /bin/bash -c "\$command"
 EOF
 chmod +x "$run_path"
 
