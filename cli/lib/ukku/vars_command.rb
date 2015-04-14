@@ -20,6 +20,6 @@ class VarsCommand
     identity_file = server['identity_file']
 
     conn = Connection.new(host, user, identity_file)
-    conn.execute("mkdir -p /etc/vars && FILES=/etc/vars/*; for f in $FILES; do echo \"${f##*/}=$(<$f)\"; done")
+    conn.execute("mkdir -p /etc/ukku/vars && FILES=/etc/ukku/vars/*; for f in $FILES; do echo \"${f##*/}=$(<$f)\"; done")
   end
 end

@@ -23,6 +23,6 @@ class SetVarCommand
     identity_file = server['identity_file']
 
     conn = Connection.new(host, user, identity_file)
-    conn.execute("mkdir -p /etc/vars && echo '#{var_value}' > /etc/vars/#{var_name} && launchapp")
+    conn.execute("mkdir -p /etc/ukku/vars && echo '#{var_value}' > /etc/ukku/vars/#{var_name} && launchapp")
   end
 end
