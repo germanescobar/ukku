@@ -19,13 +19,14 @@ apt-get -qqy update
 apt-get -y install git make
 
 wget -qO- https://get.docker.com/ | sh
-usermod -aG docker git
 
 wget https://raw.github.com/progrium/gitreceive/master/gitreceive
 mv gitreceive /usr/bin/
 cd /usr/bin
 chmod 755 gitreceive
 gitreceive init
+
+usermod -aG docker git
 
 # configure receiver script
 receiver_path="/home/git/receiver"
