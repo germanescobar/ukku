@@ -61,7 +61,7 @@ class ConfigureCommand
     def configure_server(conn, no_pg)
       wget1_command = "wget https://raw.githubusercontent.com/germanescobar/ukku/master/server/bootstrap.sh"
       chmod_command = "chmod 755 bootstrap.sh"
-      run_command = "./bootstrap.sh"
+      run_command = "sudo ./bootstrap.sh"
       run_command += " -p" unless no_pg
       conn.execute "#{wget1_command} && #{chmod_command} && #{run_command}"
     end

@@ -27,7 +27,7 @@ class PsAddCommand
 
     puts "Adding process type '#{type}' on #{host} ..."
     conn = Connection.new(host, user, identity_file)
-    conn.execute("touch /etc/ukku/ps-types/#{type}")
+    conn.execute("sudo touch /etc/ukku/ps-types/#{type}")
     begin
       conn.execute("launchapp")
     rescue Subprocess::NonZeroExit => e
