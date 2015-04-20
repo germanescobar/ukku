@@ -1,4 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+set -e
 
 # Generate a shorter, but still unique, version of the public key associated with the user doing `git push'
 generate_fingerprint() {
