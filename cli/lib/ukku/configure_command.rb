@@ -31,7 +31,7 @@ class ConfigureCommand
 
     append_ukku_file_to_gitignore
 
-    print_ssh_config if identity_file
+    print_ssh_config(host, identity_file) if identity_file
 
     puts
     puts "Your server is configured! Deploy your application using 'git push #{name} master'"
@@ -102,7 +102,7 @@ class ConfigureCommand
       end
     end
 
-    def print_ssh_config
+    def print_ssh_config(host, identity_file)
       puts "*********************************************************************"
       puts "ATTENTION: Add the following to '~/.ssh/config' before deploying"
       puts "(create the file if necessary; erase any other entry with same host):"
