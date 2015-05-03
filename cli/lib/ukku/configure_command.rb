@@ -88,8 +88,9 @@ class ConfigureCommand
     end
 
     def append_entry_to_ukku_file(name, params)
-      data = { name => params }
-      File.open(UKKU_FILE, 'a') { |f| f.write data.to_yaml }
+      data = File.exist?(UKKU_FILE) ? YAML.load_file(UKKU_FILE) : {}
+      data[name] = params
+      File.open(UKKU_FILE, 'w') { |f| f.write data.to_yaml }
     end
 
     def append_ukku_file_to_gitignore

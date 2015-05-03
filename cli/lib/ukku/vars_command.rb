@@ -3,12 +3,13 @@ class VarsCommand
     data = YAML.load_file(UKKU_FILE)
     name, server = data.first
     if name.nil?
-      raise "No application configured. Run 'ukku configure <host>' first."
+      raise NoApplicationError
     end
 
+    puts "Data length: #{data.length}"
     if data.length > 1
-      if args['--app'].empty?
-        raise "No app specified, use the --app NAME option"
+      if args['--app'].nil? || args['--app'] !~ /[^[:space:]]/
+        raise MultipleApplicationsError
       else
         name = args[--app]
         sever = data[name]

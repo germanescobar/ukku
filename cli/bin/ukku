@@ -48,6 +48,10 @@ begin
   PsRemoveCommand.new.execute(args) if args['ps:remove']
 rescue Docopt::Exit => e
   puts doc.strip
+rescue NoApplicationError => e
+  puts "   !   No application configured. Run 'ukku configure <host>' first."
+rescue MultipleApplicationsError => e
+  puts "   !   No app specified, use the --app NAME option"
 rescue Exception => e
   puts "   !   #{e.message}"
   puts e.backtrace

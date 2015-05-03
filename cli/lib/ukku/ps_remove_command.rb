@@ -3,18 +3,18 @@ class PsRemoveCommand
     type = args['TYPE']
 
     if !File.exist?(UKKU_FILE)
-      raise "No application configured. Run 'ukku configure HOST' first."
+      raise NoApplicationError
     end
 
     data = YAML.load_file(UKKU_FILE)
     name, server = data.first
     if name.nil?
-      raise "No application configured. Run 'ukku configure <host>' first."
+      raise NoApplicationError
     end
 
     if data.length > 1
       if args['--app'].empty?
-        raise "No app specified, use the --app NAME option"
+        raise MultipleApplicationsError
       else
         name = args[--app]
         sever = data[name]

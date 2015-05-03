@@ -1,0 +1,2 @@
+class MultipleApplicationsError < Exception
+end

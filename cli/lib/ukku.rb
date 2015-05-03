@@ -1,4 +1,6 @@
 require 'ukku/version.rb'
+require 'ukku/no_application_error.rb'
+require 'ukku/multiple_applications_error.rb'
 require 'ukku/connection.rb'
 require 'ukku/configure_command.rb'
 require 'ukku/run_command.rb'

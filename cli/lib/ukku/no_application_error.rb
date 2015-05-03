@@ -1,0 +1,2 @@
+class NoApplicationError < Exception
+end
