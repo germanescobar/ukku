@@ -1,32 +1,11 @@
-class PsAddCommand
+class PsAddCommand < Command
   def execute(args)
     type = args['TYPE']
 
-    if !File.exist?(UKKU_FILE)
-      raise NoApplicationError
-    end
+    app_info = load_app_info(args)
 
-    data = YAML.load_file(UKKU_FILE)
-    name, server = data.first
-    if name.nil?
-      raise NoApplicationError
-    end
-
-    if data.length > 1
-      if args['--app'].empty?
-        raise MultipleApplicationsError
-      else
-        name = args[--app]
-        sever = data[name]
-      end
-    end
-
-    host = server['host']
-    user = server['user']
-    identity_file = server['identity_file']
-
-    puts "Adding process type '#{type}' on #{host} ..."
-    conn = Connection.new(host, user, identity_file)
+    puts "Adding process type '#{type}' on #{app_info[:host]} ..."
+    conn = Connection.new(app_info)
     conn.execute("sudo touch /etc/ukku/ps-types/#{type}")
     begin
       conn.execute("launchapp")

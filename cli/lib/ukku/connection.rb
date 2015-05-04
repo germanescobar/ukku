@@ -1,8 +1,10 @@
 class Connection
-  def initialize(host, user, identity_file)
-    @host = host
-    @user = user
-    @identity_file = identity_file
+  def initialize(opts)
+    options = opts.each_with_object({}) { |(k,v), h| h[k.to_sym] = v }
+
+    @host = options[:host]
+    @user = options[:user]
+    @identity_file = options[:identity_file]
   end
 
   def execute(command, &blk)

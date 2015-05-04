@@ -1,27 +1,9 @@
-class UploadKeyCommand
+class UploadKeyCommand < Command
   def execute(args)
-    data = YAML.load_file(UKKU_FILE)
-    name, server = data.first
-    if name.nil?
-      raise NoApplicationError
-    end
-
-    if data.length > 1
-      if args['--app'].empty?
-        raise MultipleApplicationsError
-      else
-        name = args[--app]
-        sever = data[name]
-      end
-    end
-
-    host = server['host']
-    user = server['user']
-    identity_file = server['identity_file']
+    app_info = load_app_info(args)
+    conn = Connection.new(app_info)
 
     key_file = args['PUBLIC_KEY_FILE']
-
-    conn = Connection.new(host, user, identity_file)
 
     puts "Uploading key '#{key_file}' ... "
     conn.execute("gitreceive upload-key ukku") do |p|

@@ -1,4 +1,4 @@
-class ConfigureCommand
+class ConfigureCommand < Command
   def execute(args)
     host = args['HOST']
     name = args['NAME'] || "production"
@@ -15,7 +15,7 @@ class ConfigureCommand
       raise "Name '#{name}' already exists, choose a different one"
     end
 
-    conn = Connection.new(host, user, identity_file)
+    conn = Connection.new(entry)
     server_ready = is_server_ready?(conn)
     
     if server_ready
