@@ -13,7 +13,7 @@ class Command
         app_info = data[name]
       end
     else
-      app_info = data.first
+      app_info = data.values.first
     end
 
     app_info.each_with_object({}) { |(k,v), h| h[k.to_sym] = v }

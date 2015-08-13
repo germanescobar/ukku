@@ -6,8 +6,8 @@ class PsRemoveCommand < Command
 
     puts "Removing process type '#{type}' on #{app_info[:host]} ..."
     conn = Connection.new(app_info)
-    conn.execute("sudo rm /etc/ukku/ps-types/#{type} && docker kill app-#{type} && docker rm app-#{type}")
     begin
+      conn.execute("sudo rm /etc/ukku/ps-types/#{type} && docker kill app-#{type} && docker rm app-#{type}")
       conn.execute("launchapp")
     rescue Subprocess::NonZeroExit => e
     end
