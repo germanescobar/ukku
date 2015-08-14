@@ -16,7 +16,7 @@ class UploadKeyCommand < Command
     puts "ATTENTION: Add the following to '~/.ssh/config' before deploying"
     puts "(create the file if necessary; erase any other entry with same host):"
     puts
-    puts "Host #{host}"
+    puts "Host #{app_info[:host]}"
     puts "    User git"
     puts "    IdentityFile #{key_file}"
     puts "*********************************************************************"
