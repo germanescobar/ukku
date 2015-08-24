@@ -18,7 +18,7 @@ Usage:
   ukku [--app=NAME] ps
   ukku [--app=NAME] ps:add TYPE
   ukku [--app=NAME] ps:remove TYPE
-  ukku [--app=NAME] ps:restart [TYPE]
+  ukku [--app=NAME] ps:restart
 
 Arguments:
   HOST                  Domain or IP of your server.
@@ -46,6 +46,7 @@ begin
   PsCommand.new.execute(args) if args['ps']
   PsAddCommand.new.execute(args) if args['ps:add']
   PsRemoveCommand.new.execute(args) if args['ps:remove']
+  PsRestartCommand.new.execute(args) if args['ps:restart']
 rescue Docopt::Exit => e
   puts doc.strip
 rescue NoApplicationError => e
